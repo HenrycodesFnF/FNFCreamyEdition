@@ -31,4 +31,5 @@ typedef CreditsDataRole =
 typedef CreditsDataMember =
 {
   var line:String;
+  @:optional var icon:String;
 }

@@ -6,7 +6,7 @@ import funkin.audio.FunkinSound;
 import flixel.FlxSprite;
 import funkin.ui.mainmenu.MainMenuState;
 import flixel.group.FlxSpriteGroup;
-
+import openfl.utils.Assets;
 /**
  * The state used to display the credits scroll.
  */
@@ -132,6 +132,26 @@ class CreditsState extends MusicBeatState
         creditsGroup.add(header);
         y += CREDITS_HEADER_FONT_SIZE + (header.textField.numLines * CREDITS_HEADER_FONT_SIZE);
       }
+for (line in entry?.body ?? [])
+{
+	if (line.icon != null && line.icon != "")
+	{
+		var iconPath = 'assets/shared/images/credits/' + line.icon;
+		if (openfl.utils.Assets.exists(iconPath))
+		{
+			var icon = new FlxSprite(30, y).loadGraphic(iconPath);
+			icon.setGraphicSize(150, 150);
+			icon.updateHitbox();
+			creditsGroup.add(icon);
+      trace('Trying to load icon at: ' + iconPath);
+		}
+	}
+
+	var text = buildCreditsLine(line.line, y, false, CreditsSide.Left);
+	creditsGroup.add(text);
+	y += CREDITS_FONT_SIZE * text.textField.numLines;
+}
+
 
       for (line in entry?.body ?? [])
       {

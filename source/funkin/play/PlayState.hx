@@ -202,6 +202,10 @@ class PlayState extends MusicBeatSubState
    */
   public var songScore:Int = 0;
 
+  public var misses:Int = 0;
+  public var totalNotesHit:Int = 0;
+  public var totalPlayedNotes:Int = 0;
+
   /**
    * Start at this point in the song once the countdown is done.
    * For example, if `startTimestamp` is `30000`, the song will start at the 30 second mark.
@@ -2040,6 +2044,10 @@ class PlayState extends MusicBeatSubState
      */
   function startSong():Void
   {
+    misses = 0;
+    totalNotesHit = 0;
+    totalPlayedNotes = 0;
+
     startingSong = false;
 
     if (!overrideMusic && !isGamePaused && currentChart != null)
@@ -2128,16 +2136,20 @@ class PlayState extends MusicBeatSubState
      */
   function updateScoreText():Void
   {
-    // TODO: Add functionality for modules to update the score text.
+    var accuracyPercent:Int = (totalPlayedNotes > 0) ? Std.int((totalNotesHit / totalPlayedNotes) * 100) : 0;
+
     if (isBotPlayMode)
     {
       scoreText.text = 'Bot Play Enabled';
     }
     else
     {
-      // TODO: Add an option for this maybe?
-      var commaSeparated:Bool = true;
-      scoreText.text = 'Score: ${FlxStringUtil.formatMoney(songScore, false, commaSeparated)}';
+      var commaSeparated = true;
+      var scoreStr = FlxStringUtil.formatMoney(songScore, false, commaSeparated);
+
+      var accuracyPercent:Int = (totalPlayedNotes > 0) ? Std.int((totalNotesHit / totalPlayedNotes) * 100) : 0;
+
+      scoreText.text = 'Score: $scoreStr | Misses: $misses | Accuracy: $accuracyPercent%';
     }
   }
 
@@ -2574,6 +2586,10 @@ class PlayState extends MusicBeatSubState
         isComboBreak = Constants.JUDGEMENT_SHIT_COMBO_BREAK;
     }
 
+    totalNotesHit++;
+    totalPlayedNotes++;
+    updateScoreText();
+
     // Send the note hit event.
     var event:HitNoteScriptEvent = new HitNoteScriptEvent(note, healthChange, score, daRating, isComboBreak, Highscore.tallies.combo + 1, noteDiff,
       daRating == 'sick');
@@ -2600,26 +2616,12 @@ class PlayState extends MusicBeatSubState
      */
   function onNoteMiss(note:NoteSprite, playSound:Bool = false, healthChange:Float):Void
   {
-    // If we are here, we already CALLED the onNoteMiss script hook!
+    // Update miss count manually
+    misses++;
+    totalPlayedNotes++;
+    updateScoreText(); // Update the text under the health bar
 
-    if (!isPracticeMode)
-    {
-      // messy copy paste rn lol
-      var pressArray:Array<Bool> = [
-        controls.NOTE_LEFT_P,
-        controls.NOTE_DOWN_P,
-        controls.NOTE_UP_P,
-        controls.NOTE_RIGHT_P
-      ];
-
-      var indices:Array<Int> = [];
-      for (i in 0...pressArray.length)
-      {
-        if (pressArray[i]) indices.push(i);
-      }
-    }
     vocals.playerVolume = 0;
-
     applyScore(Scoring.getMissScore(), 'miss', healthChange, true);
 
     if (playSound)
@@ -2627,7 +2629,7 @@ class PlayState extends MusicBeatSubState
       vocals.playerVolume = 0;
       FunkinSound.playOnce(Paths.soundRandom('missnote', 1, 3), FlxG.random.float(0.5, 0.6));
     }
-  }
+  } // ✅ Now this closes the function at the correct place
 
   /**
      * Called when a player presses a key with no note present.

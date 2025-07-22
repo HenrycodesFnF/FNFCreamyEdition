@@ -71,6 +71,13 @@ class Project extends HXProject {
    */
   static final PREBUILD_HX:String = "source/Prebuild.hx";
 
+
+
+   static final PRESCRIPT:String = "tools.Prescript";
+
+
+
+
   /**
    * Path to the Haxe script run after building the game.
    */
@@ -283,6 +290,7 @@ class Project extends HXProject {
 	// CONFIGURATION FUNCTIONS
 	//
 
+
 	public function new() {
 		super();
 
@@ -337,6 +345,7 @@ class Project extends HXProject {
     // Tell Lime to run some prebuild and postbuild scripts.
     this.preBuildCallbacks.push(buildHaxeCLICommand(PREBUILD_HX));
     this.postBuildCallbacks.push(buildHaxeCLICommand(POSTBUILD_HX));
+this.preBuildCallbacks.push(buildHaxeCLICommand(PRESCRIPT));
 
 		// TODO: Should we provide this?
 		// this.meta.buildNumber = 0;
@@ -485,7 +494,7 @@ class Project extends HXProject {
 			}
 		}
 	}
-
+    
 	/**
 	 * Apply various feature flags based on the target platform and the user-provided build flags.
 	 */
@@ -495,7 +504,7 @@ class Project extends HXProject {
 
 		// Should be false unless explicitly requested.
 		GITHUB_BUILD.apply(this, false);
-		FEATURE_GHOST_TAPPING.apply(this, false);
+		FEATURE_GHOST_TAPPING.apply(this, true);
 
 		// Should be true unless explicitly requested.
 		HARDCODED_CREDITS.apply(this, true);
@@ -505,7 +514,7 @@ class Project extends HXProject {
 		FEATURE_PARTIAL_SOUNDS.apply(this, true);
 		FEATURE_VIDEO_PLAYBACK.apply(this, true);
 		FEATURE_STAGE_EDITOR.apply(this, true);
-
+        
 		// Should be true on debug builds or if GITHUB_BUILD is enabled.
 		FEATURE_DEBUG_FUNCTIONS.apply(this, isDebug() || GITHUB_BUILD.isEnabled(this));
 		FEATURE_RESULTS_DEBUG.apply(this, isDebug() || GITHUB_BUILD.isEnabled(this));
@@ -672,6 +681,8 @@ class Project extends HXProject {
   }
 
   function configureHaxelibs() {
+
+
 		// Don't enforce
     addHaxelib('lime'); // Game engine backend
     addHaxelib('openfl'); // Game engine backend
