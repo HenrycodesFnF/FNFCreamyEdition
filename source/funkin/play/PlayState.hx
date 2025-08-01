@@ -228,6 +228,18 @@ class PlayState extends MusicBeatSubState
    */
   public var cameraFollowPoint:FlxObject;
 
+  // Declare the property
+  public var isGamePaused(get, never):Bool;
+
+  // If you want to track manual pause via ESC
+  var _isManuallyPaused:Bool = false;
+
+  // Provide the getter
+  function get_isGamePaused():Bool
+  {
+    return this.subState != null || _isManuallyPaused;
+  }
+
   /**
    * An FlxTween that tweens the camera to the follow point.
    * Only used when tweening the camera manually, rather than tweening via follow.
@@ -528,13 +540,24 @@ class PlayState extends MusicBeatSubState
    * - The Game Over screen is open.
    * - The Chart Editor screen is open.
    */
-  var isGamePaused(get, never):Bool;
-
-  function get_isGamePaused():Bool
+  function handleReset():Void
   {
-    // Note: If there is a substate which requires the game to act unpaused,
-    //       this should be changed to include something like `&& Std.isOfType()`
-    return this.subState != null;
+    // TODO: put reset logic here
+  }
+
+  function updateUI():Void
+  {
+    // TODO: update health bar, score text
+  }
+
+  function updateMusicSync(elapsed:Float):Void
+  {
+    // TODO: conductor sync, vocals, camera bop
+  }
+
+  function updateGameLogic(elapsed:Float):Void
+  {
+    // TODO: check inputs, update notes
   }
 
   var isExitingViaPauseMenu(get, never):Bool;
@@ -2136,21 +2159,19 @@ class PlayState extends MusicBeatSubState
      */
   function updateScoreText():Void
   {
-    var accuracyPercent:Int = (totalPlayedNotes > 0) ? Std.int((totalNotesHit / totalPlayedNotes) * 100) : 0;
-
     if (isBotPlayMode)
     {
       scoreText.text = 'Bot Play Enabled';
+      return;
     }
-    else
-    {
-      var commaSeparated = true;
-      var scoreStr = FlxStringUtil.formatMoney(songScore, false, commaSeparated);
 
-      var accuracyPercent:Int = (totalPlayedNotes > 0) ? Std.int((totalNotesHit / totalPlayedNotes) * 100) : 0;
+    var accuracyPercent:Int = (totalPlayedNotes > 0) ? Std.int((totalNotesHit / totalPlayedNotes) * 100) : 0;
+    var scoreStr = FlxStringUtil.formatMoney(songScore, false, true); // commaSeparated = true
 
-      scoreText.text = 'Score: $scoreStr | Misses: $misses | Accuracy: $accuracyPercent%';
-    }
+    scoreText.text = 'Score: $scoreStr | Misses: $misses | Accuracy: $accuracyPercent%';
+    scoreText.screenCenter(X); // center horizontally
+    scoreText.y = healthBar.y + healthBar.height + 8; // a bit below the bar
+    scoreText.scrollFactor.set(); // no camera scroll
   }
 
   /**
@@ -2158,14 +2179,7 @@ class PlayState extends MusicBeatSubState
      */
   function updateHealthBar():Void
   {
-    if (isBotPlayMode)
-    {
-      healthLerp = Constants.HEALTH_MAX;
-    }
-    else
-    {
-      healthLerp = FlxMath.lerp(healthLerp, health, 0.15);
-    }
+    healthLerp = isBotPlayMode ? Constants.HEALTH_MAX : FlxMath.lerp(healthLerp, health, 0.15);
   }
 
   /**
